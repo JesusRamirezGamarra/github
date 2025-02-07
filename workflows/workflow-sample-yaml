@@ -1,0 +1,24 @@
+name: Mi nuevo flujo de trabajo   # El nombre del flujo de trabajo debe ser lo mas descriptivo posible
+
+on: 
+  push:
+    branches:   # tener en consideracion que se deben de definir muy bien los eventos ()
+      - master
+      - develop
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+      - name: Mostar mis archivos y carpetas clonadas
+        run: ls -la
+      - name: Hello world desde mi step
+        run: echo "Hola mundo desde mi step.."
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+  notification:
+    runs-on: ubuntu-latest
+    steps:

@@ -1,0 +1,12 @@
+
+name: Flujo de trabajo para eventos cron   # El nombre del flujo de trabajo debe ser lo mas descriptivo posible
+
+on: 
+  workflow_dispatch:   # indica que va a ser una ejecucion manual desde mi proyecto de github
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Hello world desde mi step
+        run: echo "Hola mundo desde mi step.."

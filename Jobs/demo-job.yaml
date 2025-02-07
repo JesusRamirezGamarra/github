@@ -1,0 +1,19 @@
+name: Flujo de trabajo, jobs de ejemplo   # El nombre del flujo de trabajo debe ser lo mas descriptivo posible
+
+on: 
+  push:
+    branches:   # tener en consideracion que se deben de definir muy bien los eventos ()
+      - develop
+
+jobs:
+  build:                          # a la hora de definir los jobs deben ser separados por funcion u objetivo
+    runs-on: ubuntu-latest
+    steps:                        # es mejor desglozar multiples steps que tener uno solo que se encargue de varias cosas
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Deplegar aplicacion en la nube...
+        run: aws cli s3 sync s3://
