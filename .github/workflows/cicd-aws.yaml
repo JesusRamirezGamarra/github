@@ -1,13 +1,12 @@
-
-name: Workflow aws-vercel deploy
+name: Workflow aws deploy
 
 on: 
   push:
     branches:
-      - aws-vercel
+      - workflow
 
 jobs:
-  deploy-aws-vercel:
+  deploy---aws:
     runs-on: ubuntu-latest
     steps:
       - name: Clonar repositorio
@@ -34,11 +33,19 @@ jobs:
       - name: Validar conexion aws...
         run: aws s3 ls
       
+      - name: Obtener fecha actual y sincronizar en S3
+        run: |
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+          echo "Nombre de la carpeta de despliegue: $TIMESTAMP"
+          echo "FOLDER_NAME=$TIMESTAMP" >> $GITHUB_ENV
+          aws s3 sync build/ s3://bucket-codigo-backup/JesusRamirez/actions/codigo/AWS/$TIMESTAMP/ --delete
+      
+      - name: Mostrar nombre final de la carpeta en S3
+        run: |
+          echo "Los archivos se guardaron en: s3://bucket-codigo-backup/JesusRamirez/actions/codigo/$FOLDER_NAME/"
+        env:
+          FOLDER_NAME: ${{ env.FOLDER_NAME }}
+
       - name: Sync carpeta front en bucket..
         run: aws s3 sync build/ s3://bucket-codigo-jesus/ --delete
 
-      # - name: Instalar vercel...
-      #   run: npm install -g vercel
-
-      # - name: Deploy to vercel...
-      #   run: vercel deploy --prod --name front-vercel --token=${{ secrets.VERCEL_TOKEN }} --yes

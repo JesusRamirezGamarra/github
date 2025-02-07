@@ -1,0 +1,104 @@
+name: Manual Deploy
+
+on: 
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Versión a desplegar (ej: v1.0.0)'
+        required: true
+      target:
+        description: 'Selecciona dónde desplegar (AWS o VERCEL)'
+        required: true
+        default: 'AWS'
+        type: choice
+        options:
+          - AWS
+          - VERCEL
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Instalar dependencias...
+        run: npm install
+
+      - name: Compilar proyecto...
+        run: npm run build
+
+      - name: Conectarse a AWS
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      - name: Validar conexión AWS...
+        run: aws s3 ls
+
+      - name: Obtener fecha actual y sincronizar en S3 (Backup)
+        run: |
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+          echo "FOLDER_NAME=$TIMESTAMP" >> $GITHUB_ENV
+          if [[ "${{ github.event.inputs.target }}" == "AWS" ]]; then
+            aws s3 sync build/ s3://bucket-codigo-backup/JesusRamirez/actions/codigo/AWS/${{ github.event.inputs.version }}/$TIMESTAMP/ --delete
+            echo "Backup guardado en: s3://bucket-codigo-backup/JesusRamirez/actions/codigo/AWS/${{ github.event.inputs.version }}/$TIMESTAMP/"
+          else
+            aws s3 sync build/ s3://bucket-codigo-backup/JesusRamirez/actions/codigo/VERCEL/${{ github.event.inputs.version }}/$TIMESTAMP/ --delete
+            echo "Backup guardado en: s3://bucket-codigo-backup/JesusRamirez/actions/codigo/VERCEL/${{ github.event.inputs.version }}/$TIMESTAMP/"
+          fi
+
+  deploy-aws:
+    if: github.event.inputs.target == 'AWS'
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Instalar dependencias...
+        run: npm install
+
+      - name: Compilar proyecto...
+        run: npm run build
+
+      - name: Desplegar en AWS
+        run: echo "Desplegando la versión ${{ github.event.inputs.version }} en AWS..."
+
+  deploy-vercel:
+    if: github.event.inputs.target == 'VERCEL'
+    runs-on: ubuntu-latest
+    needs: deploy
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar nodejs
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Instalar dependencias...
+        run: npm install
+
+      - name: Compilar proyecto...
+        run: npm run build
+
+      - name: Instalar Vercel CLI...
+        run: npm install -g vercel
+
+      - name: Deploy a Vercel
+        run: |
+          vercel deploy --prod --name front-vercel-${{ github.event.inputs.version }} --token=${{ secrets.VERCEL_TOKEN }} --yes
