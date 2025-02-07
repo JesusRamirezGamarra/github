@@ -1,13 +1,13 @@
 
-name: Workflow aws deploy
+name: Workflow aws-vercel deploy
 
 on: 
   push:
     branches:
-      - aws
+      - aws-vercel
 
 jobs:
-  deploy-aws:
+  deploy-aws-vercel:
     runs-on: ubuntu-latest
     steps:
       - name: Clonar repositorio

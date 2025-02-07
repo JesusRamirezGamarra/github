@@ -1,12 +1,12 @@
-name: Workflow vercel deploy
+name: Workflow aws-vercel deploy
 
 on: 
   push:
     branches:
-      - vercel
+      - aws-vercel
 
 jobs:
-  deploy-vercel:
+  deploy-aws-vercel:
     runs-on: ubuntu-latest
     steps:
       - name: Clonar repositorio
@@ -23,7 +23,7 @@ jobs:
       - name: Compilar proyecto...
         run: npm run build
 
-      - name: Instalar vercel...
+      - name: Instalar aws-vercel...
         run: npm install -g vercel
 
       - name: Deploy to vercel...
