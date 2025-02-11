@@ -1,0 +1,54 @@
+name: Workflow aws deploy
+
+on:
+  push:
+    branches:
+      - workflow
+
+jobs:
+  deploy-common:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Clonar repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Instalar dependencias
+        run: npm install
+
+      - name: Compilar proyecto
+        run: npm run build
+
+  deploy-aws:
+    needs: deploy-common
+    runs-on: ubuntu-latest
+    steps:
+      - name: Conectandome a aws
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+      
+      - name: Validar conexion aws
+        run: aws s3 ls
+      
+      - name: Obtener fecha actual y sincronizar en S3
+        run: |
+          TIMESTAMP=$(date +"%Y-%m-%d_%H-%M-%S")
+          echo "Nombre de la carpeta de despliegue: $TIMESTAMP"
+          echo "FOLDER_NAME=$TIMESTAMP" >> $GITHUB_ENV
+          aws s3 sync build/ s3://bucket-codigo-backup/JesusRamirez/actions/codigo/AWS/$TIMESTAMP/ --delete
+      
+      - name: Mostrar nombre final de la carpeta en S3
+        run: |
+          echo "Los archivos se guardaron en: s3://bucket-codigo-backup/JesusRamirez/actions/codigo/$FOLDER_NAME/"
+        env:
+          FOLDER_NAME: ${{ env.FOLDER_NAME }}
+      
+      - name: Sync carpeta front en bucket
+        run: aws s3 sync build/ s3://bucket-codigo-jesus/ --delete
