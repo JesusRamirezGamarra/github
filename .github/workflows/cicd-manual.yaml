@@ -104,4 +104,4 @@ jobs:
 
       - name: Deploy a Vercel
         run: |
-          vercel deploy --prod --name front-vercel-${{ github.event.inputs.version }} --token=${{ secrets.VERCEL_TOKEN }} --yes
+          vercel deploy --prod --name front-vercel-${{ github.event.inputs.version }} --token=${{ secrets.VERCEL_TOKEN }} --yes 
